@@ -1,0 +1,111 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:notes_app_sqflite/db/notes_database.dart';
+import 'package:notes_app_sqflite/model/note.dart';
+import 'package:notes_app_sqflite/page/add_edit_note_page.dart';
+
+class NoteDetailPage extends StatefulWidget {
+  final int noteId;
+
+  const NoteDetailPage({
+    Key? key,
+    required this.noteId,
+  }) : super(key: key);
+
+  @override
+  _NoteDetailPageState createState() => _NoteDetailPageState();
+}
+
+class _NoteDetailPageState extends State<NoteDetailPage> {
+  late Note note;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    refreshNote();
+  }
+
+  Future refreshNote() async {
+    setState(() => isLoading = true);
+
+    note = await NotesDatabase.instance.readNote(widget.noteId);
+
+    setState(() => isLoading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          actions: [editButton(), deleteButton()],
+        ),
+        backgroundColor: cardColor(note.number),
+        body: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: EdgeInsets.all(12),
+                child: ListView(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    Text(
+                      note.title,
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      DateFormat.yMMMd().format(note.createdTime),
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      note.description,
+                      style: TextStyle(color: Colors.black87, fontSize: 18),
+                    )
+                  ],
+                ),
+              ),
+      );
+
+  Widget editButton() => IconButton(
+      icon: Icon(Icons.edit_outlined),
+      onPressed: () async {
+        if (isLoading) return;
+
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => AddEditNotePage(note: note),
+        ));
+
+        refreshNote();
+      });
+
+  Widget deleteButton() => IconButton(
+        icon: Icon(Icons.delete),
+        onPressed: () async {
+          await NotesDatabase.instance.deleteNote(widget.noteId);
+
+          Navigator.of(context).pop();
+        },
+      );
+
+  Color cardColor(num number) {
+    switch (number.toInt()) {
+      case 0:
+        return Colors.lightGreen.shade300;
+      case 1:
+        return Colors.lightBlue.shade300;
+      case 2:
+        return Colors.orange.shade300;
+      case 3:
+        return Colors.purpleAccent.shade100;
+      case 4:
+        return Colors.redAccent.shade100;
+      default:
+        return Colors.white;
+    }
+  }
+}

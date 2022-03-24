@@ -108,7 +108,7 @@ CREATE TABLE $tableNotes (
     return await db.update(
       tableNotes,
       note.toJson(),
-      where: '{$NoteFields.id} = ?',
+      where: '${NoteFields.id} = ?',
       whereArgs: [note.id],
     );
   }
