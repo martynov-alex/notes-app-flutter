@@ -13,11 +13,12 @@ class NoteDetailPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NoteDetailPageState createState() => _NoteDetailPageState();
+  State createState() => _NoteDetailPageState();
 }
 
 class _NoteDetailPageState extends State<NoteDetailPage> {
   late Note note;
+  Color color = Colors.white;
   bool isLoading = false;
 
   @override
@@ -31,6 +32,7 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
     setState(() => isLoading = true);
 
     note = await NotesDatabase.instance.readNote(widget.noteId);
+    color = await cardColor(note.number);
 
     setState(() => isLoading = false);
   }
@@ -40,7 +42,7 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
         appBar: AppBar(
           actions: [editButton(), deleteButton()],
         ),
-        backgroundColor: cardColor(note.number),
+        backgroundColor: color,
         body: isLoading
             ? Center(child: CircularProgressIndicator())
             : Padding(
@@ -92,7 +94,7 @@ class _NoteDetailPageState extends State<NoteDetailPage> {
         },
       );
 
-  Color cardColor(num number) {
+  Future<Color> cardColor(num number) async {
     switch (number.toInt()) {
       case 0:
         return Colors.lightGreen.shade300;
